@@ -356,24 +356,6 @@ html[data-paused='1'] .whale {
   animation-play-state: paused;
 }
 
-/* iOS's GPU-process limit also covers CSS surfaces, independently of WebGL.
-   Keep the scene and animations while avoiding full-screen filter/blend copies. */
-html[data-gpu-budget='low'] .shafts {
-  mix-blend-mode: normal;
-}
-
-html[data-gpu-budget='low'] .shafts i,
-html[data-gpu-budget='low'] .whale,
-html[data-gpu-budget='low'] .reef {
-  filter: none;
-  will-change: auto;
-}
-
-html[data-gpu-budget='low'] #stage {
-  transform: none;
-  transition: opacity 0.3s;
-}
-
 /* A bare stage (bare.js): only the model, the page behind it showing through.
    Her room stays laid out, unseen, so nothing that measures it moves. */
 html[data-bare='1'],

@@ -82,11 +82,9 @@ class CompanionServer {
   void _listen() {
     _server.listen((request) {
       late final Future<void> pending;
-      pending = _handle(request)
-          .catchError((Object _) {
-            // The page went away mid-response.
-          })
-          .whenComplete(() => _requests.remove(pending));
+      pending = _handle(request).catchError((Object _) {
+          // The page went away mid-response.
+        }).whenComplete(() => _requests.remove(pending));
       _requests.add(pending);
     });
   }
@@ -109,18 +107,10 @@ class CompanionServer {
 
     switch (segments[1]) {
       case 'app' when _appFiles.contains(path):
-        final asset = await _assets.load('assets/companion/$path');
+        final data = await _assets.load('assets/companion/$path');
         if (_closed) return response.close();
-        var bytes = Uint8List.sublistView(asset);
-        // Set the budget before WebKit's first paint. Applying it from stage.js
-        // would leave the initial full-screen blur/blend surfaces unbounded.
-        if (path == 'index.html' && request.uri.queryParameters['gpuBudget'] == 'low') {
-          bytes = Uint8List.fromList(
-            utf8.encode(utf8.decode(bytes).replaceFirst('<html ', '<html data-gpu-budget="low" ')),
-          );
-        }
-        _headers(response, type, bytes.length);
-        if (request.method == 'GET') response.add(bytes);
+        _headers(response, type, data.lengthInBytes);
+        if (request.method == 'GET') response.add(Uint8List.sublistView(data));
         await response.close();
       case 'pack':
         final file = File('${_pack.path}/$path');

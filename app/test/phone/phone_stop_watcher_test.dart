@@ -18,13 +18,7 @@ class _Client extends DshClient {
   Future<List<SessionSummary>> listSessions() async => [
     SessionSummary(sessionId: 'busy', updatedAt: DateTime(2026), running: true, blank: false, agentAvailable: true),
     if (extraRunning)
-      SessionSummary(
-        sessionId: 'other-busy',
-        updatedAt: DateTime(2026),
-        running: true,
-        blank: false,
-        agentAvailable: true,
-      ),
+      SessionSummary(sessionId: 'other-busy', updatedAt: DateTime(2026), running: true, blank: false, agentAvailable: true),
     SessionSummary(sessionId: 'idle', updatedAt: DateTime(2026), running: false, blank: false, agentAvailable: true),
   ];
 
@@ -64,47 +58,12 @@ void main() {
     expect(client.cancelled, ['busy']);
   });
 
-  for (final initiallyOwned in [false, true]) {
-    test('iOS singleton owner never falls back to cancelling unrelated chats (initial=$initiallyOwned)', () async {
-      Map<String, Object?> status({bool stopped = false, bool owned = true}) {
-        final base = phoneStatus(taskActive: !stopped, taskStopped: stopped);
-        return {
-          ...base,
-          'task': {...base['task']! as Map, if (owned) 'ownerSessionId': 'busy'},
-        };
-      }
-
-      final native = FakePhoneNative(status: status(owned: initiallyOwned))..install();
-      final client = _Client(extraRunning: true);
-      final container = ProviderContainer(overrides: [localConnectionProvider.overrideWith(() => _Local(client))]);
-      addTearDown(container.dispose);
-      await container.read(localConnectionProvider.future);
-      container.listen(phoneStopWatcherProvider, (_, _) {});
-      await pumpEventQueue();
-      if (!initiallyOwned) {
-        native.push(status());
-        await pumpEventQueue();
-      }
-      // Native owns the phone task stop. Retiring its owner must not re-enable
-      // legacy cancel-all against this chat or another concurrently running chat.
-      native.push(status(stopped: true));
-      await pumpEventQueue();
-      native.push(status(stopped: true, owned: false));
-      await pumpEventQueue();
-      expect(client.cancelled, isEmpty);
-    });
-  }
-
   // #848, #926, #968: the screen going off with no phone task running is reported as a stop too.
   for (final versioned in [false, true]) {
     test('a stop that interrupted no phone task leaves the running turn alone (versioned=$versioned)', () async {
       Map<String, Object?> status({bool active = false, bool stopped = false}) => {
         ...phoneStatus(taskActive: active, taskStopped: stopped),
-        if (versioned) ...{
-          'taskProtocol': 1,
-          'tasks': [],
-          'callerCapability': {'launch': 1, 'modernSeen': false},
-        },
+        if (versioned) ...{'taskProtocol': 1, 'tasks': [], 'callerCapability': {'launch': 1, 'modernSeen': false}},
       };
       final native = FakePhoneNative(status: status())..install();
       final client = _Client();
@@ -132,10 +91,7 @@ void main() {
   test('native interrupted decides the stop when it is reported, whatever the snapshots around it say', () async {
     Map<String, Object?> status({bool active = false, bool stopped = false, Object? interrupted = false}) {
       final base = phoneStatus(taskActive: active, taskStopped: stopped);
-      return {
-        ...base,
-        'task': {...base['task']! as Map, 'interrupted': interrupted},
-      };
+      return {...base, 'task': {...base['task']! as Map, 'interrupted': interrupted}};
     }
 
     final native = FakePhoneNative(status: status(active: true))..install();
@@ -172,9 +128,7 @@ void main() {
   for (final initiallyModern in [false, true]) {
     test('launch capability survives retired task lists and late status (initial=$initiallyModern)', () async {
       Map<String, Object?> status(int launch, bool modern, bool stopped) => {
-        ...phoneStatus(taskActive: !stopped, taskStopped: stopped),
-        'taskProtocol': 1,
-        'tasks': [],
+        ...phoneStatus(taskActive: !stopped, taskStopped: stopped), 'taskProtocol': 1, 'tasks': [],
         'callerCapability': {'launch': launch, 'modernSeen': modern},
       };
       final native = FakePhoneNative(status: status(1, initiallyModern, false))..install();
@@ -207,16 +161,10 @@ void main() {
     });
   }
 
-  for (final capability in [
-    null,
-    {'launch': 1.0, 'modernSeen': false},
-    {'launch': 1, 'modernSeen': 0},
-  ]) {
+  for (final capability in [null, {'launch': 1.0, 'modernSeen': false}, {'launch': 1, 'modernSeen': 0}]) {
     test('modern protocol with unknown capability never cancels all: $capability', () async {
       Map<String, Object?> status(bool stopped) => {
-        ...phoneStatus(taskActive: !stopped, taskStopped: stopped),
-        'taskProtocol': 1,
-        'tasks': [],
+        ...phoneStatus(taskActive: !stopped, taskStopped: stopped), 'taskProtocol': 1, 'tasks': [],
         'callerCapability': ?capability,
       };
       final native = FakePhoneNative(status: status(false))..install();
@@ -234,12 +182,9 @@ void main() {
 
   test('modern tasks prohibit fallback even when the capability snapshot says false', () async {
     Map<String, Object?> status(bool stopped, bool hasModern) => {
-      ...phoneStatus(taskActive: !stopped, taskStopped: stopped),
-      'taskProtocol': 1,
+      ...phoneStatus(taskActive: !stopped, taskStopped: stopped), 'taskProtocol': 1,
       'callerCapability': {'launch': 1, 'modernSeen': false},
-      'tasks': [
-        if (hasModern) {'id': 9, 'sessionId': 'modern', 'active': true},
-      ],
+      'tasks': [if (hasModern) {'id': 9, 'sessionId': 'modern', 'active': true}],
     };
     final native = FakePhoneNative(status: status(false, true))..install();
     final client = _Client();
@@ -255,10 +200,8 @@ void main() {
 
   test('revision rejects old stop edges and resets before legacy cancellation', () async {
     Map<String, Object?> status(int revision, bool stopped) => {
-      ...phoneStatus(taskActive: !stopped, taskStopped: stopped),
-      'statusRevision': revision,
-      'taskProtocol': 1,
-      'tasks': [],
+      ...phoneStatus(taskActive: !stopped, taskStopped: stopped), 'statusRevision': revision,
+      'taskProtocol': 1, 'tasks': [],
       'callerCapability': {'launch': 1, 'modernSeen': false},
     };
     final native = FakePhoneNative(status: status(3, false))..install();
@@ -321,7 +264,6 @@ void main() {
           'task': {...base['task']! as Map, 'interrupted': stopped, 'stopSource': reason},
         };
       }
-
       final native = FakePhoneNative(status: status(false, null))..install();
       final client = _Client(extraRunning: true);
       final container = ProviderContainer(overrides: [localConnectionProvider.overrideWith(() => _Local(client))]);
@@ -347,12 +289,7 @@ void main() {
       await pumpEventQueue();
       native.push(status(true, 'USER'));
       await pumpEventQueue();
-      expect(client.cancelled, [
-        'busy',
-        'other-busy',
-        'busy',
-        'other-busy',
-      ], reason: 'a fresh stopped hold can cancel again');
+      expect(client.cancelled, ['busy', 'other-busy', 'busy', 'other-busy'], reason: 'a fresh stopped hold can cancel again');
     });
   }
 

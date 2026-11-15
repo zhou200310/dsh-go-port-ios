@@ -26,11 +26,9 @@
   const SHADERS = `${PACK}runtime/shaders/`;
   const MAX_TEXTURE = Number(query.get('maxTexture')) || 4096;
   let REDUCED = query.get('reduceMotion') === '1';
-  const requestedDpr = Number(query.get('dpr'));
-  // Keep main's sharper float mode; iOS supplies its bounded device budget.
-  const defaultDpr = FLOAT ? 4 : 2;
-  const DPR_CAP = Number.isFinite(requestedDpr) && requestedDpr > 0
-    ? Math.min(defaultDpr, Math.max(0.5, requestedDpr)) : defaultDpr;
+  // Float draws at the screen's own density: its viewport is at most 640 view px tall, and a
+  // 1x buffer stretched over a 3x screen reads as out of focus.
+  const DPR_CAP = FLOAT ? 4 : 2;
   // Clip masks: the renderer packs them into textures of four channels, at
   // most 36 different masks in one texture, 32 each when there are several.
   // A model that needs more (a detailed one: 49 for 大肥鱼 4096) gets more
@@ -661,10 +659,11 @@
   /** The character's files, as the app listed them when it unpacked the pack. */
   let packFiles = null;
   function packIndex() {
-    packFiles ??= fetch(`${CHARACTER}index.json`, { signal: floatAbort?.signal })
+    // Spelled out: WebView 83 (Android 10) cannot parse logical assignment (#1165).
+    packFiles ?? (packFiles = fetch(`${CHARACTER}index.json`, { signal: floatAbort?.signal })
       .then((response) => (response.ok ? response.json() : []))
       .then((files) => (Array.isArray(files) ? files.filter((f) => typeof f === 'string') : []))
-      .catch(() => []);
+      .catch(() => []));
     return packFiles;
   }
 
@@ -807,7 +806,7 @@
       zones = model && !model.tailIds.length ? DEFAULT_ZONES.map((z) => (z.id === 'tail' ? { ...z, id: 'legs' } : z)) : DEFAULT_ZONES;
       zonesFrom = 'default';
     }
-    defaultZoom ??= camera.zoom;
+    defaultZoom ?? (defaultZoom = camera.zoom);
     camera.zoom = Number(adapter?.framing?.zoom) || Number(character.framing?.zoom) || defaultZoom;
     camera.y = Number(adapter?.framing?.y ?? character.framing?.y) || 0;
     if (FLOAT) {

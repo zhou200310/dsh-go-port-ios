@@ -19,7 +19,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
 import '../pets/pet_name_alias.dart';
-import '../pets/pet_pack_validator.dart' show decodePetJson, PetValidationException, pngIntact;
+import '../pets/pet_pack_validator.dart' show decodePetJson, PetValidationException, pngSize;
 import '../workshop/workshop_export.dart';
 import '../workshop/workshop_models.dart';
 import '../workshop/workshop_receipt.dart';
@@ -36,8 +36,8 @@ const companionRuntimeDigest = '20e4e35ce1de09bd9017197363a96afdb4d9fc045d574fb6
 const CompanionPackSource? companionPackSource = null;
 
 /// A pack that comes inside the app, unpacked the first time the room opens.
-/// The release pack is supplied at build time and kept outside the repository.
-/// Builds made with the zip in place carry it; optional builds may omit it.
+/// It isn't in the repository (its model's terms aren't settled for that):
+/// builds made with the zip in place carry it, the others simply have none.
 const companionBundledPack = 'assets/companion/whale-girl.zip';
 
 /// Whether this build carries the pack, without reading it.
