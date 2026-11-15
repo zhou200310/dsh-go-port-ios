@@ -20,6 +20,12 @@ jobs:
           flutter-version: '3.47.9'
           cache: true
 
+      - name: Show Xcode
+        run: |
+          xcodebuild -version
+          ls /Applications | grep -i xcode || true
+          xcrun --sdk iphoneos --show-sdk-version
+
       - name: Flutter doctor
         run: |
           flutter --version
