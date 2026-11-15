@@ -19352,6 +19352,12 @@ abstract class L10n {
   /// **'无法在 App 内播放此视频，请重试或使用其他应用打开。'**
   String get mediaVideoCannotPlay;
 
+  /// No description provided for @mediaVideoUnsupported.
+  ///
+  /// In zh, this message translates to:
+  /// **'此版本暂不支持在 App 内播放视频，可保存到相册或在其他应用中打开。'**
+  String get mediaVideoUnsupported;
+
   /// No description provided for @mediaVideoPlay.
   ///
   /// In zh, this message translates to:

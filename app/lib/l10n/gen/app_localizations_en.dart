@@ -11000,6 +11000,10 @@ class L10nEn extends L10n {
   String get mediaVideoCannotPlay => 'This video could not be played here. Retry or open it in another app.';
 
   @override
+  String get mediaVideoUnsupported =>
+      'In-app video playback is not available in this build. Save the video or open it in another app.';
+
+  @override
   String get mediaVideoPlay => 'Play';
 
   @override

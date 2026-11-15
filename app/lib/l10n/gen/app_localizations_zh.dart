@@ -10446,6 +10446,9 @@ class L10nZh extends L10n {
   String get mediaVideoCannotPlay => '无法在 App 内播放此视频，请重试或使用其他应用打开。';
 
   @override
+  String get mediaVideoUnsupported => '此版本暂不支持在 App 内播放视频，可保存到相册或在其他应用中打开。';
+
+  @override
   String get mediaVideoPlay => '播放';
 
   @override

@@ -20,12 +20,13 @@ class SpeechChannelContract(unittest.TestCase):
             if source.name.startswith('._'):
                 continue
             ios_channels.update(re.findall(
-                r'(?:FlutterMethodChannel|FlutterEventChannel)\(name:\s*"(dsh/[^"]+)', source.read_text(errors='ignore')))
+                r'(?:FlutterMethodChannel|FlutterEventChannel|SilentEvents)\(name:\s*"(dsh/[^"]+)',
+                source.read_text(errors='ignore')))
         # These are reviewed in CHANNEL_COVERAGE.md. Some are OHOS/Android-only;
         # unresolved iOS capabilities remain visible there until implemented.
         exceptions = {
             'dsh/attachment-files', 'dsh/dynamic_color', 'dsh/media_video',
-            'dsh/notify/actions', 'dsh/phone/preview', 'dsh/picture_shortcut',
+            'dsh/phone/preview', 'dsh/picture_shortcut',
             'dsh/secrets', 'dsh/update', 'dsh/web-files',
         }
         self.assertFalse(dart_channels - ios_channels - exceptions,
@@ -46,6 +47,13 @@ class SpeechChannelContract(unittest.TestCase):
         ios_methods = set(re.findall(r'case "([A-Za-z]+)"', native))
         self.assertTrue({'open', 'write', 'callStart'} <= dart_methods)
         self.assertFalse(dart_methods - ios_methods, sorted(dart_methods - ios_methods))
+
+    def test_gallery_video_save_has_a_native_handler(self):
+        dart = (ROOT / 'app/lib/media/gallery.dart').read_text()
+        swift = (ROOT / 'app/ios/Runner/DshPlugin.swift').read_text()
+        self.assertIn("invokeMethod<String>('saveVideoFile'", dart)
+        native = swift.split('private final class MediaChannel', 1)[1].split('// MARK: - dsh/notify', 1)[0]
+        self.assertIn('case "saveVideoFile":', native)
 
 
 if __name__ == '__main__':
