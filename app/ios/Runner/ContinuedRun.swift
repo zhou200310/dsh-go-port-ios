@@ -19,6 +19,8 @@ final class ContinuedRun {
   init() {
     NotificationCenter.default.addObserver(
       self, selector: #selector(becameActive), name: UIApplication.didBecomeActiveNotification, object: nil)
+    NotificationCenter.default.addObserver(
+      self, selector: #selector(willResignActive), name: UIApplication.willResignActiveNotification, object: nil)
   }
 
   func update(running: Bool) {
@@ -27,20 +29,27 @@ final class ContinuedRun {
     trace(running ? "requested" : "idle")
     if running {
       spent = false
-      submit()
     } else {
       finish(success: true)
     }
   }
 
-  /// A turn can start while the app is on its way out, and a request is only accepted in front.
-  @objc private func becameActive() {
+  /// Continued tasks show a system Live Activity as soon as submitted. Submit
+  /// at the foreground-to-background boundary so an ordinary foreground chat
+  /// does not leave an always-on progress card above the conversation.
+  @objc private func willResignActive() {
     if wanted { submit() }
+  }
+
+  @objc private func becameActive() {
+    // Returning through Control Center or from another app ends the card. A
+    // still-running turn can request a fresh task on the next departure.
+    finish(success: true)
   }
 
   private func submit() {
     guard #available(iOS 26.0, *), !spent, task == nil, submitted == nil,
-      UIApplication.shared.applicationState == .active
+      UIApplication.shared.applicationState != .background
     else { return }
     // Each request registers its own identifier, so a late launch can't be taken for a newer turn's.
     let identifier = "\(Bundle.main.bundleIdentifier ?? "dsh").continued.\(UUID().uuidString)"
