@@ -69,6 +69,7 @@ enum SettingsPageId {
   agentPresets,
   phone,
   phoneAppRules,
+  phoneAlwaysAllow,
   phoneAndroidShell,
   phoneDnd,
   phoneUnlocks,
@@ -395,6 +396,12 @@ final _pages = <SettingsPageMeta>[
     title: (l) => l.phoneAppRulesTitle,
     parent: SettingsPageId.phone,
     keywords: (l) => l.searchKwAppRules,
+  ),
+  SettingsPageMeta(
+    SettingsPageId.phoneAlwaysAllow,
+    title: (l) => l.phoneAlwaysAllowTitle,
+    parent: SettingsPageId.phone,
+    keywords: (l) => l.phoneAlwaysAllowSwitchHint,
   ),
   SettingsPageMeta(
     SettingsPageId.phoneAndroidShell,
@@ -830,6 +837,7 @@ abstract final class Spots {
     title: (l) => l.botsPetOutsideApp,
     keywords: (l) => l.searchKwPetOutside,
     androidOnly: true,
+    iosToo: true,
   );
   static final petDisplayWhen = SettingSpot(
     'pet-display-when',
@@ -837,18 +845,21 @@ abstract final class Spots {
     title: (l) => l.botsPetDisplayWhen,
     keywords: (l) => l.searchKwPetDisplayWhen,
     androidOnly: true,
+    iosToo: true,
   );
   static final petOverlayShows = SettingSpot(
     'pet-overlay-shows',
     page: SettingsPageId.pets,
     title: (l) => l.botsPetOverlayShows,
     keywords: (l) => l.searchKwPetOverlayShows,
+    androidOnly: true,
   );
   static final petOverlayFraming = SettingSpot(
     'pet-overlay-framing',
     page: SettingsPageId.pets,
     title: (l) => l.botsPetOverlayFraming,
     keywords: (l) => l.searchKwPetOverlayFraming,
+    androidOnly: true,
   );
   static final petMake = SettingSpot(
     'pet-make',

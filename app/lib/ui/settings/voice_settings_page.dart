@@ -123,18 +123,6 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final selected = ref.watch(voiceSettingsProvider);
-    // iOS has the system's recogniser and no model to download, so there is nothing to choose.
-    if (wordsForIos) {
-      return AppPage.list(
-        title: l10n.voiceSettingsTitle,
-        children: [
-          SettingsSection(
-            title: l10n.voiceModeSection,
-            children: [SettingsTile(title: voiceModeLabel(l10n, VoiceMode.system), subtitle: l10n.iosVoiceSystemHint)],
-          ),
-        ],
-      );
-    }
     final call = ref.watch(callSettingsProvider);
     final calls = ref.read(callSettingsProvider.notifier);
     return AppPage.list(
@@ -159,40 +147,45 @@ class _VoiceSettingsPageState extends ConsumerState<VoiceSettingsPage> {
         SettingsSection(
           title: l10n.voiceModeSection,
           children: [
-            for (final mode in VoiceMode.values)
-              Semantics(
-                checked: selected == mode,
-                inMutuallyExclusiveGroup: true,
-                child: SettingsTile(
-                  key: ValueKey('voice-mode-${mode.name}'),
-                  title: voiceModeLabel(l10n, mode),
-                  subtitle: switch (mode) {
-                    VoiceMode.auto => l10n.voiceModeAutoHint,
-                    VoiceMode.deepseek => l10n.voiceModeDeepseekHint,
-                    VoiceMode.system => l10n.voiceModeSystemHint,
-                    VoiceMode.engine => l10n.voiceModeEngineHint,
-                    VoiceMode.cloud => l10n.voiceModeCloudHint,
-                  },
-                  trailing: SizedBox.square(
-                    dimension: 32,
-                    child: Icon(selected == mode ? AppIcons.radioOn : AppIcons.radioOff, size: 24),
+            if (wordsForIos)
+              SettingsTile(title: voiceModeLabel(l10n, VoiceMode.system), subtitle: l10n.iosVoiceSystemHint),
+            if (!wordsForIos)
+              for (final mode in VoiceMode.values)
+                Semantics(
+                  checked: selected == mode,
+                  inMutuallyExclusiveGroup: true,
+                  child: SettingsTile(
+                    key: ValueKey('voice-mode-${mode.name}'),
+                    title: voiceModeLabel(l10n, mode),
+                    subtitle: switch (mode) {
+                      VoiceMode.auto => l10n.voiceModeAutoHint,
+                      VoiceMode.deepseek => l10n.voiceModeDeepseekHint,
+                      VoiceMode.system => l10n.voiceModeSystemHint,
+                      VoiceMode.engine => l10n.voiceModeEngineHint,
+                      VoiceMode.cloud => l10n.voiceModeCloudHint,
+                    },
+                    trailing: SizedBox.square(
+                      dimension: 32,
+                      child: Icon(selected == mode ? AppIcons.radioOn : AppIcons.radioOff, size: 24),
+                    ),
+                    onTap: () => unawaited(ref.read(voiceSettingsProvider.notifier).setMode(mode)),
                   ),
-                  onTap: () => unawaited(ref.read(voiceSettingsProvider.notifier).setMode(mode)),
                 ),
-              ),
           ],
         ),
-        if (selected == VoiceMode.cloud) const _CloudAsrForm(),
-        SettingsSection(
-          title: l10n.voiceModelSection,
-          footer: Text(l10n.voiceModelFooter),
-          children: const [VoiceModelCard()],
-        ),
-        SettingsSection(
-          title: l10n.speechLiveSection,
-          footer: Text(l10n.speechLiveFooter),
-          children: const [StreamingAsrModelCard()],
-        ),
+        if (!wordsForIos && selected == VoiceMode.cloud) const _CloudAsrForm(),
+        if (!wordsForIos)
+          SettingsSection(
+            title: l10n.voiceModelSection,
+            footer: Text(l10n.voiceModelFooter),
+            children: const [VoiceModelCard()],
+          ),
+        if (!wordsForIos)
+          SettingsSection(
+            title: l10n.speechLiveSection,
+            footer: Text(l10n.speechLiveFooter),
+            children: const [StreamingAsrModelCard()],
+          ),
         SettingsSection(
           title: l10n.speechCallSection,
           footer: Text(l10n.speechCallFooter),

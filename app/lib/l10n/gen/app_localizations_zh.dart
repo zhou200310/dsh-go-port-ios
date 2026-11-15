@@ -1640,7 +1640,8 @@ class L10nZh extends L10n {
   String get androidShellEnable => '允许 Android Shell';
 
   @override
-  String get androidShellEnableHint => '独立开关，不随不打扰模式或屏幕免确认设置开启。';
+  String get androidShellEnableHint =>
+      '独立开关，不随不打扰模式或屏幕免确认开启；只增加 Android 命令通道，不影响 Ubuntu 里的 bash / run_code 等工具，两者可同时使用。';
 
   @override
   String get androidShellConfirmationNote => '每条命令均需确认，可能修改系统和文件。';
@@ -1816,6 +1817,9 @@ class L10nZh extends L10n {
 
   @override
   String get androidShellErrorInvalidResponse => '没有收到有效的原生状态，请刷新或更新 App。';
+
+  @override
+  String get androidShellErrorStopped => '本轮已结束或暂停，请重新开启后再试。';
 
   @override
   String get androidShellErrorStopFailed => '未确认已停止，请刷新状态并重试停止。';
@@ -9193,7 +9197,7 @@ class L10nZh extends L10n {
 
   @override
   String get iosPhoneLinkIntro =>
-      '用这台 iPhone 自己的开发者服务读屏、点按和输入，不用一直连着电脑。先在手机上打开开发者模式，并保持 LocalDevVPN 已连接。每个任务首次授权一次，最多 30 分钟，可随时暂停。';
+      '用这台 iPhone 自己的开发者服务读屏、点按和输入，不用一直连着电脑。先打开开发者模式，并确认用于本机连接的 LocalDevVPN 已接通。每个任务首次授权一次，最多 30 分钟，可随时暂停。';
 
   @override
   String get iosPhoneLinkUnavailable => '需要 iOS 17 或更高版本。';
@@ -9310,7 +9314,7 @@ class L10nZh extends L10n {
   String get iosPhoneLinkClipboardDiscard => '丢弃保存的旧剪贴板';
 
   @override
-  String get iosPhoneLinkErrorBusy => '还有一项设置在进行，等它结束再试。';
+  String get iosPhoneLinkErrorBusy => '连接设置仍在处理另一项准备。回到「本机连接」点取消，确认 LocalDevVPN 已接通后再检查。';
 
   @override
   String get iosPhoneLinkErrorForeground => '要在 App 打开、手机解锁时操作。';
@@ -9325,7 +9329,14 @@ class L10nZh extends L10n {
   String get iosPhoneLinkErrorPairingRequired => '先导入配对凭据。';
 
   @override
-  String get iosPhoneLinkErrorTunnel => '连不上本机服务。确认 LocalDevVPN 已连接、开发者模式已打开，再试一次。';
+  String get iosPhoneLinkErrorTunnel => '连不上本机服务。先确认用于本机连接的 LocalDevVPN 已接通、开发者模式已打开，再检查连接。';
+
+  @override
+  String get iosSpeechCallEndNoRecognizer => '语音通话需要能识别录音的方式：登录 DeepSeek 账号、填写 API Key，或配置其他可用的云端识别。iOS 暂不提供本地语音模型下载。';
+
+  @override
+  String get iosSpeechCallEndNoRecognizerSignedIn =>
+      '当前连接不能用已登录账号识别通话录音（例如经 DSH Remote 中继）；请填写 DeepSeek API Key 或配置其他可用的云端识别。iOS 暂不提供本地语音模型下载。';
 
   @override
   String get iosPhoneLinkErrorPairingRejected => '手机不认这份配对凭据。重新生成一份再导入。';
@@ -10941,6 +10952,38 @@ class L10nZh extends L10n {
   String get phoneAppRulesPackageHint => '在「设置 → 应用 → 应用信息」里能找到';
 
   @override
+  String get phoneAlwaysAllowTitle => '始终允许';
+
+  @override
+  String get phoneAlwaysAllowOff => '未开启';
+
+  @override
+  String phoneAlwaysAllowCount(int count) {
+    return '已允许 $count 个应用';
+  }
+
+  @override
+  String get phoneAlwaysAllowSwitchHint => '不再询问就把内容发到你选的应用';
+
+  @override
+  String get phoneAlwaysAllowWarning => '开启后 DSH 可不再询问就把内容发到这些应用，发出后无法撤回。';
+
+  @override
+  String get phoneAlwaysAllowConfirm => '确认开启';
+
+  @override
+  String get phoneAlwaysAllowAdd => '添加应用';
+
+  @override
+  String get phoneAlwaysAllowEmpty => '还没有允许的应用';
+
+  @override
+  String get phoneAlwaysAllowRemove => '移除';
+
+  @override
+  String get phoneAlwaysAllowSaveFailed => '保存失败';
+
+  @override
   String get phoneDndRequiresAndroid => '需要 Android 14 及以上';
 
   @override
@@ -11169,7 +11212,7 @@ class L10nZh extends L10n {
   String get phoneConfirmAskHint => '进新 App、发送、删除、付款前先问你';
 
   @override
-  String get phoneConfirmTaskHint => '每个任务只问一次';
+  String get phoneConfirmTaskHint => '本轮只问一次';
 
   @override
   String get phoneConfirmAlwaysHint => '从不询问，直接操作';

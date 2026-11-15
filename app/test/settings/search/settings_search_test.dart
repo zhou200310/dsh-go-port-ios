@@ -63,12 +63,37 @@ void main() {
   setUp(() => SharedPreferences.setMockInitialValues({}));
 
   group('matching', () {
+    test('iOS search keeps the available PiP setting and filters unsupported renderer controls', () {
+      List<String?> ids(String query) => [
+        for (final hit in searchSettings(
+          query,
+          spots: SettingsIndex.spots,
+          features: const [],
+          zh: _zh,
+          en: _en,
+          androidFeatures: false,
+          ios: true,
+        ))
+          hit.spot?.id,
+      ];
+      expect(ids('桌面宠物'), contains(Spots.petOutsideApp.id));
+      expect(ids('悬浮窗里显示'), isNot(contains(Spots.petOverlayShows.id)));
+    });
+
     test('Android system commands find the phone page, not the engine shell', () {
       final androidShell = SettingsIndex.entry(SettingsPageId.phoneAndroidShell);
       for (final query in ['Android Shell', '系统命令', 'system-command']) {
         expect(_search(query).first.spot, androidShell, reason: query);
       }
       expect(_search('bash').first.spot, SettingsIndex.entry(SettingsPageId.shell));
+    });
+
+    test('「始终允许」 finds the always-allow page', () {
+      final alwaysAllow = SettingsIndex.entry(SettingsPageId.phoneAlwaysAllow);
+      for (final query in ['始终允许', 'always allow']) {
+        expect(_ids(query).first, alwaysAllow.id, reason: query);
+      }
+      expect(_ids('不再询问'), contains(alwaysAllow.id));
     });
 
     test('lower case, full width folded, spaces dropped', () {
@@ -228,7 +253,9 @@ void main() {
       expect(find.textContaining('问 AI'), findsNothing);
     });
 
-    testWidgets('on HarmonyOS: the launcher icon is there, the picture shortcut and launch screen aren\'t', (tester) async {
+    testWidgets('on HarmonyOS: the launcher icon is there, the picture shortcut and launch screen aren\'t', (
+      tester,
+    ) async {
       await _pumpSearch(tester, overrides: [..._overrides(), operatingSystemProvider.overrideWithValue('ohos')]);
       await _type(tester, _zh.pluginsAppIcon);
       expect(find.text(_zh.pluginsAppIcon), findsWidgets);
@@ -287,7 +314,12 @@ void main() {
           home: Scaffold(
             body: Align(
               alignment: Alignment.bottomCenter,
-              child: IdentityBar(onHost: () {}, onFeatures: () {}, onSettings: () => tapped++, onSettingsHold: () => held++),
+              child: IdentityBar(
+                onHost: () {},
+                onFeatures: () {},
+                onSettings: () => tapped++,
+                onSettingsHold: () => held++,
+              ),
             ),
           ),
           brightness: Brightness.light,

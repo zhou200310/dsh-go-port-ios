@@ -1722,7 +1722,7 @@ class L10nEn extends L10n {
 
   @override
   String get androidShellEnableHint =>
-      'A separate switch, independent of non-disruptive mode and screen confirmation settings.';
+      'A separate switch, independent of non-disruptive mode and screen confirmation. It only adds an Android command channel; Ubuntu tools such as bash and run_code keep working, and both can be used together.';
 
   @override
   String get androidShellConfirmationNote =>
@@ -1914,6 +1914,9 @@ class L10nEn extends L10n {
 
   @override
   String get androidShellErrorInvalidResponse => 'No valid native status was received. Refresh or update the app.';
+
+  @override
+  String get androidShellErrorStopped => 'This round has ended or is paused. Turn it on again and retry.';
 
   @override
   String get androidShellErrorStopFailed => 'Stopping was not confirmed. Refresh the status and retry stopping.';
@@ -9704,7 +9707,7 @@ class L10nEn extends L10n {
 
   @override
   String get iosPhoneLinkIntro =>
-      'Reads the screen, taps and types through this iPhone\'s own developer services, without staying connected to a computer. Turn on Developer Mode first and keep LocalDevVPN connected. Approve each task once for up to 30 minutes; pause it at any time.';
+      'Reads the screen, taps and types through this iPhone\'s own developer services, without staying connected to a computer. Turn on Developer Mode and confirm that LocalDevVPN, used for this local connection, is connected. Approve each task once for up to 30 minutes; pause it at any time.';
 
   @override
   String get iosPhoneLinkUnavailable => 'Needs iOS 17 or later.';
@@ -9827,7 +9830,8 @@ class L10nEn extends L10n {
   String get iosPhoneLinkClipboardDiscard => 'Discard the saved clipboard';
 
   @override
-  String get iosPhoneLinkErrorBusy => 'Another step is still running. Try again when it finishes.';
+  String get iosPhoneLinkErrorBusy =>
+      'Another connection setup is still running. Return to Local connection and tap Cancel, then check that LocalDevVPN is connected before trying again.';
 
   @override
   String get iosPhoneLinkErrorForeground => 'Do this with the app open and the phone unlocked.';
@@ -9843,7 +9847,15 @@ class L10nEn extends L10n {
 
   @override
   String get iosPhoneLinkErrorTunnel =>
-      'Can\'t reach this phone\'s services. Check that LocalDevVPN is connected and Developer Mode is on, then try again.';
+      'Can\'t reach this phone\'s services. First check that LocalDevVPN is connected and Developer Mode is on, then check the connection again.';
+
+  @override
+  String get iosSpeechCallEndNoRecognizer =>
+      'Voice calls need a way to recognize recordings: sign in to DeepSeek, add an API key, or configure another available cloud recognizer. The local voice model is not available on iOS yet.';
+
+  @override
+  String get iosSpeechCallEndNoRecognizerSignedIn =>
+      'This connection can\'t use your signed-in account to recognize call recordings (for example, through DSH Remote). Add a DeepSeek API key or configure another available cloud recognizer. The local voice model is not available on iOS yet.';
 
   @override
   String get iosPhoneLinkErrorPairingRejected =>
@@ -11500,6 +11512,39 @@ class L10nEn extends L10n {
   String get phoneAppRulesPackageHint => 'Find it in Settings → Apps → App info';
 
   @override
+  String get phoneAlwaysAllowTitle => 'Always allow';
+
+  @override
+  String get phoneAlwaysAllowOff => 'Off';
+
+  @override
+  String phoneAlwaysAllowCount(int count) {
+    return '$count apps allowed';
+  }
+
+  @override
+  String get phoneAlwaysAllowSwitchHint => 'Send content to the apps you pick without asking';
+
+  @override
+  String get phoneAlwaysAllowWarning =>
+      'Once on, DSH can send content to these apps without asking. Sent content can’t be taken back.';
+
+  @override
+  String get phoneAlwaysAllowConfirm => 'Turn on';
+
+  @override
+  String get phoneAlwaysAllowAdd => 'Add app';
+
+  @override
+  String get phoneAlwaysAllowEmpty => 'No apps allowed yet';
+
+  @override
+  String get phoneAlwaysAllowRemove => 'Remove';
+
+  @override
+  String get phoneAlwaysAllowSaveFailed => 'Couldn’t save';
+
+  @override
   String get phoneDndRequiresAndroid => 'Requires Android 14 or later';
 
   @override
@@ -11741,7 +11786,7 @@ class L10nEn extends L10n {
   String get phoneConfirmAskHint => 'Asks before entering a new app, sending, deleting or paying';
 
   @override
-  String get phoneConfirmTaskHint => 'Asks once per task';
+  String get phoneConfirmTaskHint => 'Asks once this round';
 
   @override
   String get phoneConfirmAlwaysHint => 'Acts without asking';
