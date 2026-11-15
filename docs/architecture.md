@@ -424,5 +424,5 @@ DSH npm 前缀（runtime/locks）→ rtbuild 按 series 应用目标平台的补
 | iOS | `python3 -B tooling/ios/test-channel-contract.py`；`iOS compile`/`iOS guest`/`iOS UI tour` CI；Xcode unsigned 编译和签名后的真机安装分别记录 |
 
 CI：`.github/workflows/ci.yml` 按 paths-filter 在 PR 上跑改动涉及部分，push `main` 全量，看 `CI OK`；
-`ios-compile.yml`、`ios-guest.yml`、`ios-ui-tour.yml` 分别检查 iOS 编译、运行时与界面，
+`ios-compile.yml`、`ios-guest.yml`、`ios-ui-tour.yml` 在相关路径改动时检查 iOS 编译、运行时与界面（含 `main`），
 不能代替签名和 iPhone 真机结果；`pr-gate.yml` 关闭外部 PR；`goldens.yml` 手动渲染 golden。
