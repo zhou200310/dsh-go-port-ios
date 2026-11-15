@@ -36,6 +36,7 @@ jobs:
         run: |
           bash tooling/ios/build-phone-self-runner.sh --check
           python3 tooling/ios/tests/phone-self-runner.test.py -v
+          python3 -B tooling/ios/test-channel-contract.py -v
 
   compile:
     runs-on: macos-26
