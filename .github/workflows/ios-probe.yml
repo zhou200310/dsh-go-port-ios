@@ -31,36 +31,40 @@ jobs:
           flutter --version
           flutter doctor -v
 
+      - name: Purge stale pub cache entry
+        run: |
+          set -e
+          # 双保险：清掉 pub cache 里的 7.3.2，避免任何路径再拉到它
+          rm -rf ~/.pub-cache/hosted/pub.dev/connectivity_plus-7.3.2 || true
+          echo "=== 剩余 connectivity 缓存 ==="
+          ls ~/.pub-cache/hosted/pub.dev/ | grep connectivity || echo "(空)"
+
       - name: Generate iOS platform
         working-directory: app
         run: |
           set -e
           echo "=== 生成 ios/ 骨架 ==="
-          # flutter create 会重写 pubspec.lock，可能把 connectivity_plus 拉回 7.3.2。
-          # 先备份我们改好的 lockfile。
-          cp pubspec.lock /tmp/lockfile.fixed
-          flutter create --platforms=ios --org io.github.ccch1mneyyy --project-name dsh_app . 2>&1 | tail -20
-          echo "=== 恢复修好的 lockfile ==="
-          cp /tmp/lockfile.fixed pubspec.lock
-          echo "=== 确认版本 ==="
-          grep -A7 "^  connectivity_plus:" pubspec.lock | head -8
+          flutter create --platforms=ios --org io.github.ccch1mneyyy --project-name dsh_app . 2>&1 | tail -15
           echo "=== ios/ 内容 ==="
           ls -la ios/ || echo "无 ios 目录"
 
-      - name: Pub get (enforce lockfile)
+      - name: Pub get (fresh resolve)
         working-directory: app
         run: |
           set -e
-          flutter pub get --enforce-lockfile 2>&1 | tail -30
-          echo "=== 解析后实际版本 ==="
+          # 删掉 lock 让 pub 完全重新解析：
+          # 手工改 lock 会导致 "Unable to satisfy pubspec.yaml using pubspec.lock"，
+          # 且部分依赖的旧记录残留会让新版本无法落地。
+          rm -f pubspec.lock
+          flutter pub get 2>&1 | tail -30
+          echo "=== lock 解析结果 ==="
           python3 - <<'PYEOF'
           import re
           txt = open('pubspec.lock').read()
           m = re.search(r'  connectivity_plus:\n(?:.*\n)*?    version: "([^"]+)"', txt)
-          print("connectivity_plus lock version:", m.group(1) if m else "NOT FOUND")
+          print("connectivity_plus =", m.group(1) if m else "NOT FOUND")
+          assert m and m.group(1).startswith("7.0"), "版本仍未降下来！"
           PYEOF
-          echo "=== pub cache 里的 connectivity_plus 目录 ==="
-          ls ~/.pub-cache/hosted/pub.dev/ | grep connectivity || true
 
       - name: Build iOS (expect failures — collect them)
         working-directory: app
