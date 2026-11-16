@@ -36,15 +36,31 @@ jobs:
         run: |
           set -e
           echo "=== 生成 ios/ 骨架 ==="
+          # flutter create 会重写 pubspec.lock，可能把 connectivity_plus 拉回 7.3.2。
+          # 先备份我们改好的 lockfile。
+          cp pubspec.lock /tmp/lockfile.fixed
           flutter create --platforms=ios --org io.github.ccch1mneyyy --project-name dsh_app . 2>&1 | tail -20
-          echo "=== 生成的 ios/ 内容 ==="
+          echo "=== 恢复修好的 lockfile ==="
+          cp /tmp/lockfile.fixed pubspec.lock
+          echo "=== 确认版本 ==="
+          grep -A7 "^  connectivity_plus:" pubspec.lock | head -8
+          echo "=== ios/ 内容 ==="
           ls -la ios/ || echo "无 ios 目录"
 
-      - name: Pub get
+      - name: Pub get (enforce lockfile)
         working-directory: app
         run: |
           set -e
-          flutter pub get 2>&1 | tail -30
+          flutter pub get --enforce-lockfile 2>&1 | tail -30
+          echo "=== 解析后实际版本 ==="
+          python3 - <<'PYEOF'
+          import re
+          txt = open('pubspec.lock').read()
+          m = re.search(r'  connectivity_plus:\n(?:.*\n)*?    version: "([^"]+)"', txt)
+          print("connectivity_plus lock version:", m.group(1) if m else "NOT FOUND")
+          PYEOF
+          echo "=== pub cache 里的 connectivity_plus 目录 ==="
+          ls ~/.pub-cache/hosted/pub.dev/ | grep connectivity || true
 
       - name: Build iOS (expect failures — collect them)
         working-directory: app
