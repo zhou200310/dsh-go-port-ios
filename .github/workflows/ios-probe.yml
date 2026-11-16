@@ -31,14 +31,6 @@ jobs:
           flutter --version
           flutter doctor -v
 
-      - name: Purge stale pub cache entry
-        run: |
-          set -e
-          # 双保险：清掉 pub cache 里的 7.3.2，避免任何路径再拉到它
-          rm -rf ~/.pub-cache/hosted/pub.dev/connectivity_plus-7.3.2 || true
-          echo "=== 剩余 connectivity 缓存 ==="
-          ls ~/.pub-cache/hosted/pub.dev/ | grep connectivity || echo "(空)"
-
       - name: Generate iOS platform
         working-directory: app
         run: |
@@ -48,46 +40,45 @@ jobs:
           echo "=== ios/ 内容 ==="
           ls -la ios/ || echo "无 ios 目录"
 
-      - name: Pub get (fresh resolve)
+      - name: Pub get
         working-directory: app
         run: |
           set -e
-          # 删掉 lock 让 pub 完全重新解析：
-          # 手工改 lock 会导致 "Unable to satisfy pubspec.yaml using pubspec.lock"，
-          # 且部分依赖的旧记录残留会让新版本无法落地。
-          rm -f pubspec.lock
           flutter pub get 2>&1 | tail -30
           echo "=== lock 解析结果 ==="
           python3 - <<'PYEOF'
           import re
           txt = open('pubspec.lock').read()
           m = re.search(r'  connectivity_plus:\n(?:.*\n)*?    version: "([^"]+)"', txt)
-          print("connectivity_plus =", m.group(1) if m else "NOT FOUND")
-          assert m and m.group(1).startswith("7.0"), "版本仍未降下来！"
+          v = m.group(1) if m else "NOT FOUND"
+          print("connectivity_plus =", v)
+          # 7.2.0/7.3.x 用了 iOS 26 的 NWPath.isUltraConstrained，macos-15 的 Xcode 16 没有这个 API
+          assert v == "7.0.0", f"connectivity_plus 版本异常: {v}，必须锁 7.0.0"
           PYEOF
 
-      - name: Build iOS (expect failures — collect them)
+      - name: Build iOS unsigned
         working-directory: app
-        continue-on-error: true
         run: |
-          set +e
-          flutter build ios --release --no-codesign 2>&1 | tee /tmp/build.log
-          echo "EXIT=$?" | tee -a /tmp/build.log
+          set -e
+          flutter build ios --release --no-codesign 2>&1 | tail -60
 
-      - name: Extract errors
-        if: always()
+      - name: Pack unsigned ipa
         run: |
-          echo "======== 错误汇总 ========"
-          grep -iE "error|Error:" /tmp/build.log 2>/dev/null | head -60 || echo "(无 build.log)"
-          echo
-          echo "======== 末尾 80 行 ========"
-          tail -80 /tmp/build.log 2>/dev/null || true
+          set -e
+          app="$(find app/build/ios/iphoneos -maxdepth 1 -name '*.app' | head -1)"
+          test -n "$app" || { echo "未找到 .app"; exit 1; }
+          echo "app = $app"
+          plutil -p "$app/Info.plist" | grep -E 'CFBundleIdentifier|MinimumOSVersion' || true
+          mkdir -p "$RUNNER_TEMP/ipa/Payload"
+          cp -R "$app" "$RUNNER_TEMP/ipa/Payload/"
+          (cd "$RUNNER_TEMP/ipa" && /usr/bin/ditto -c -k --keepParent Payload "$RUNNER_TEMP/dsh-go-unsigned.ipa")
+          ls -lh "$RUNNER_TEMP/dsh-go-unsigned.ipa"
 
-      - name: Upload log
-        if: always()
+      - name: Upload unsigned ipa
         uses: actions/upload-artifact@v4
         with:
-          name: ios-probe-log
-          path: /tmp/build.log
+          name: dsh-go-unsigned-ipa
+          path: ${{ runner.temp }}/dsh-go-unsigned.ipa
+          if-no-files-found: error
+          compression-level: 0
           retention-days: 14
-          if-no-files-found: warn
